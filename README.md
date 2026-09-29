@@ -12,7 +12,7 @@ cabal install    # installs the `vn` command
 ## Usage
 
 ```
-vn add <task>                             add a task for today
+vn add|a <task>                           add a task for today
 vn list|l [yesterday | YYYY-MM-DD | all]  show tasks (default: today)
 vn done|d <id>                            mark one of today's tasks done
 vn remove|r <id>                          remove one of today's tasks

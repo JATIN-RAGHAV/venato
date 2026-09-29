@@ -157,7 +157,7 @@ usage :: String
 usage =
   unlines
     [ "usage:"
-    , "  vn add <task>                             add a task for today"
+    , "  vn add|a <task>                           add a task for today"
     , "  vn list|l [yesterday | YYYY-MM-DD | all]  show tasks (default: today)"
     , "  vn done|d <id>                            mark one of today's tasks done"
     , "  vn remove|r <id>                          remove one of today's tasks"
@@ -165,6 +165,7 @@ usage =
 
 -- Expand short command names to their full form.
 expand :: [String] -> [String]
+expand ("a" : rest) = "add" : rest
 expand ("l" : rest) = "list" : rest
 expand ("d" : rest) = "done" : rest
 expand ("r" : rest) = "remove" : rest
