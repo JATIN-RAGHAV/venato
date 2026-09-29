@@ -157,11 +157,18 @@ usage :: String
 usage =
   unlines
     [ "usage:"
-    , "  vn add <task>                           add a task for today"
-    , "  vn list [yesterday | YYYY-MM-DD | all]  show tasks (default: today)"
-    , "  vn done <id>                            mark one of today's tasks done"
-    , "  vn rm <id>                              remove one of today's tasks"
+    , "  vn add <task>                             add a task for today"
+    , "  vn list|l [yesterday | YYYY-MM-DD | all]  show tasks (default: today)"
+    , "  vn done|d <id>                            mark one of today's tasks done"
+    , "  vn remove|r <id>                          remove one of today's tasks"
     ]
+
+-- Expand short command names to their full form.
+expand :: [String] -> [String]
+expand ("l" : rest) = "list" : rest
+expand ("d" : rest) = "done" : rest
+expand ("r" : rest) = "remove" : rest
+expand args         = args
 
 main :: IO ()
 main = do
@@ -169,7 +176,7 @@ main = do
   c <- useColor stdout
   today <- localDay . zonedTimeToLocalTime <$> getZonedTime
   tasks <- loadTasks
-  case args of
+  case expand args of
     ("add" : ws)
       | not (all isSpace (unwords ws)) -> addTask c today (unwords ws) tasks
     [] -> listDay c today today tasks
@@ -179,6 +186,6 @@ main = do
     ["list", s]
       | Just d <- readMaybe s -> listDay c today d tasks
     ["done", s] -> completeTask c today s tasks
-    ["rm", s] -> removeTask c today s tasks
+    ["remove", s] -> removeTask c today s tasks
     ["help"] -> putStr usage
     _ -> hPutStr stderr usage >> exitFailure
