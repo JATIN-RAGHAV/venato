@@ -89,12 +89,39 @@ addTask today name tasks = do
   saveTasks (tasks ++ [task])
   putStrLn ("added " ++ show newId ++ ": " ++ name)
 
+-- Past days are read-only, so only today's tasks can be changed.
+withTodayTask :: Day -> String -> [Task] -> (Task -> IO ()) -> IO ()
+withTodayTask today s tasks k =
+  case readMaybe s of
+    Nothing -> die ("venato: not a task id: " ++ s)
+    Just i -> case filter ((== i) . taskId) tasks of
+      [] -> die ("venato: no task with id " ++ show i)
+      (t : _)
+        | day t /= today ->
+            die ("venato: task " ++ show i ++ " is from " ++ show (day t) ++ " and is read-only")
+        | otherwise -> k t
+
+completeTask :: Day -> String -> [Task] -> IO ()
+completeTask today s tasks = withTodayTask today s tasks $ \t ->
+  if done t
+    then putStrLn ("already done " ++ show (taskId t) ++ ": " ++ title t)
+    else do
+      saveTasks [if taskId u == taskId t then u {done = True} else u | u <- tasks]
+      putStrLn ("completed " ++ show (taskId t) ++ ": " ++ title t)
+
+removeTask :: Day -> String -> [Task] -> IO ()
+removeTask today s tasks = withTodayTask today s tasks $ \t -> do
+  saveTasks (filter ((/= taskId t) . taskId) tasks)
+  putStrLn ("removed " ++ show (taskId t) ++ ": " ++ title t)
+
 usage :: String
 usage =
   unlines
     [ "usage:"
-    , "  venato add <task>                        add a task for today"
+    , "  venato add <task>                           add a task for today"
     , "  venato list [yesterday | YYYY-MM-DD | all]  show tasks (default: today)"
+    , "  venato done <id>                            mark one of today's tasks done"
+    , "  venato rm <id>                              remove one of today's tasks"
     ]
 
 main :: IO ()
@@ -111,5 +138,7 @@ main = do
     ["list", "all"] -> listAll today tasks
     ["list", s]
       | Just d <- readMaybe s -> listDay today d tasks
+    ["done", s] -> completeTask today s tasks
+    ["rm", s] -> removeTask today s tasks
     ["help"] -> putStr usage
     _ -> hPutStr stderr usage >> exitFailure
