@@ -3,14 +3,14 @@ module Main (main) where
 import Control.Exception (evaluate)
 import Data.Char (isSpace)
 import Data.Function (on)
-import Data.List (groupBy, sortOn)
+import Data.List (groupBy, intercalate, partition, sortOn)
 import Data.Ord (Down (..))
 import Data.Time (Day, addDays, getZonedTime, localDay, zonedTimeToLocalTime)
 import System.Directory (doesFileExist, getHomeDirectory, renameFile)
 import System.Environment (getArgs, lookupEnv)
 import System.Exit (die, exitFailure)
 import System.FilePath ((</>))
-import System.IO (Handle, hIsTerminalDevice, hPutStr, stderr, stdout)
+import System.IO (Handle, hIsTerminalDevice, hPutStr, hSetEncoding, stderr, stdout, utf8)
 import Text.Read (readMaybe)
 
 data Task = Task
@@ -89,8 +89,13 @@ renderDay c today d tasks = unlines (header : body)
       | done t    = paint c green "[x]"
       | isToday   = paint c yellow "[ ]"
       | otherwise = paint c red "[ ]"
-    nDone = length (filter done tasks)
-    nLeft = length tasks - nDone
+    (finished, pending) = partition done tasks
+    nDone = length finished
+    nLeft = length pending
+    -- a rule as wide as the longest task line
+    rule = paint c dim ("  " ++ replicate (maximum (map lineWidth tasks)) '\x2500')
+    lineWidth t = 4 + width + 2 + length (title t)
+    groups = filter (not . null) [map line finished, map line pending]
     summary =
       "  " ++ paint c green (show nDone ++ " done") ++ paint c dim ", "
         ++ if isToday
@@ -98,7 +103,7 @@ renderDay c today d tasks = unlines (header : body)
           else paint c red (show nLeft ++ " missed")
     body
       | null tasks = [paint c dim "  no tasks"]
-      | otherwise  = map line tasks ++ [summary]
+      | otherwise  = intercalate [rule] groups ++ [summary]
 
 padLeft :: Int -> String -> String
 padLeft n s = replicate (n - length s) ' ' ++ s
@@ -174,6 +179,7 @@ expand args         = args
 main :: IO ()
 main = do
   args <- getArgs
+  hSetEncoding stdout utf8
   c <- useColor stdout
   today <- localDay . zonedTimeToLocalTime <$> getZonedTime
   tasks <- loadTasks
