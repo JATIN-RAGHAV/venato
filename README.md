@@ -18,4 +18,6 @@ venato done <id>                            mark one of today's tasks done
 venato rm <id>                              remove one of today's tasks
 ```
 
+`vn` is installed as a short alias, so `vn add <task>` works the same way.
+
 Tasks are stored in `~/.venato`.
