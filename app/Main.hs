@@ -44,7 +44,7 @@ cyan   = "36"
 abort :: String -> IO a
 abort msg = do
   c <- useColor stderr
-  die (paint c red "venato:" ++ " " ++ msg)
+  die (paint c red "vn:" ++ " " ++ msg)
 
 -- Storage: one `show`n Task per line in ~/.venato
 
@@ -157,10 +157,10 @@ usage :: String
 usage =
   unlines
     [ "usage:"
-    , "  venato add <task>                           add a task for today"
-    , "  venato list [yesterday | YYYY-MM-DD | all]  show tasks (default: today)"
-    , "  venato done <id>                            mark one of today's tasks done"
-    , "  venato rm <id>                              remove one of today's tasks"
+    , "  vn add <task>                           add a task for today"
+    , "  vn list [yesterday | YYYY-MM-DD | all]  show tasks (default: today)"
+    , "  vn done <id>                            mark one of today's tasks done"
+    , "  vn rm <id>                              remove one of today's tasks"
     ]
 
 main :: IO ()

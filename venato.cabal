@@ -6,17 +6,9 @@ license:            GPL-3.0-only
 license-file:       LICENSE
 build-type:         Simple
 
-common app
+executable vn
+    main-is:          Main.hs
     hs-source-dirs:   app
     build-depends:    base, directory, filepath, time
     default-language: Haskell2010
     ghc-options:      -Wall
-
-executable venato
-    import:           app
-    main-is:          Main.hs
-
--- Short alias for the same program
-executable vn
-    import:           app
-    main-is:          Main.hs
